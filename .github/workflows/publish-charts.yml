@@ -70,11 +70,11 @@ jobs:
           tag: ${{ github.ref }}
           body: "${{ env.CHART_NAME }} Released ${{ env.CHART_VERSION }}"
           overwrite: true
-          # Uploaded to https://github.com/mbaldessari/charts-test/releases/download/main/test-0.0.1.tgz
+          # Uploaded to https://github.com/claudiol/charts-test/releases/download/main/test-0.0.1.tgz
       - name: update helm index
         run: |-
           set -e
-          helm repo index --url https://mbaldessari.github.io/charts-test/releases/download/main/ --merge index.yaml .
+          helm repo index --url https://claudiol.github.io/charts-test/releases/download/main/ --merge index.yaml .
           cat index.yaml
           echo "HELM_DIR=${PWD}" >> $GITHUB_ENV
       - name: Checkout code
