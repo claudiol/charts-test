@@ -12,10 +12,6 @@ on:
       SOURCE_REPO:
         required: true
         description: The helm chart repo
-      TEMPLATE_DIR:
-        required: false
-        description: The path relative to the SOURCE_REPO where Chart.yaml and the templates directory is
-        default: ""
       SOURCE_BRANCH_OVERRIDE:
         required: false
         description: If specified, checks out the head of this branch rather than the commit tagged by SOURCE_TAG
@@ -25,6 +21,8 @@ env:
   SOURCE_TAG: "${{ inputs.SOURCE_TAG }}"
   SOURCE_REPO: "${{ inputs.SOURCE_REPO }}"
   SOURCE_BRANCH_OVERRIDE: "${{ inputs.SOURCE_BRANCH_OVERRIDE }}"
+  UMBRELLA_REPO: "claudiol/charts-test"
+  ASSETS_BASE_URL: "https://github.com/claudiol/charts-test/releases/download/main/"
 
 jobs:
   update-charts:
@@ -37,10 +35,6 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: v3.12.1
-
-      - name: Setup yq
-        run: |-
-          sudo curl -L -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
 
       - name: Clone remote helm repo
         env:
@@ -60,21 +54,12 @@ jobs:
         run: |-
           set -euo pipefail
           helm package helm-repo/${{ inputs.TEMPLATE_DIR }}
-          CHART_NAME=$(yq '.name' helm-repo/Chart.yaml)
-          CHART_VERSION=$(yq '.version' helm-repo/Chart.yaml)
+          CHART_NAME=$(yq -r '.name' helm-repo/Chart.yaml)
+          CHART_VERSION=$(yq -r '.version' helm-repo/Chart.yaml)
           CHART_TGZ="${CHART_NAME}-${CHART_VERSION}.tgz"
-          echo "CHART_NAME=$(yq '.name' helm-repo/Chart.yaml)" >> $GITHUB_ENV
-          echo "CHART_VERSION=$(yq '.version' helm-repo/Chart.yaml)" >> $GITHUB_ENV
+          echo "CHART_NAME=$(yq -r '.name' helm-repo/Chart.yaml)" >> $GITHUB_ENV
+          echo "CHART_VERSION=$(yq -r '.version' helm-repo/Chart.yaml)" >> $GITHUB_ENV
           echo "CHART_TGZ=${CHART_TGZ}" >> $GITHUB_ENV
-
-          # Some rudimentary parsing of the version. The chart *must* use the simple semantic versioning
-          # so x.y.z only atm
-          CHART_MAJ=$(yq '.version | (split(".") | .[0])' helm-repo/Chart.yaml)
-          CHART_MIN=$(yq '.version | (split(".") | .[1])' helm-repo/Chart.yaml)
-          CHART_PATCHLEVEL=$(yq '.version | (split(".") | .[2])' helm-repo/Chart.yaml)
-          echo "CHART_MAJ=${CHART_MAJ}" >> $GITHUB_ENV
-          echo "CHART_MIN=${CHART_MIN}" >> $GITHUB_ENV
-          echo "CHART_PATCHLEVEL=${CHART_PATCHLEVEL}" >> $GITHUB_ENV
 
       - name: Upload helm package as a release asset
         uses: svenstaro/upload-release-action@v2
@@ -87,12 +72,26 @@ jobs:
           overwrite: true
           # Uploaded to https://github.com/mbaldessari/charts-test/releases/download/main/test-0.0.1.tgz
 
+      # This step fetches all assets and places them in the current folder
+      # The reason for doing this is that it makes things fully idempotent and we do not need
+      # to rely on the --merge feature when generating the index
+      # While this probably does not scale all too well it should be fine for our not too large
+      # helm repo
+      - name: Fetch all assets locally
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |-
+          set -e
+          for i in $(gh api repos/${UMBRELLA_REPO}/releases/latest | jq -r ".assets[].browser_download_url"); do
+            curl -O -L "${i}"
+          done
+
       - name: Update the helm index.yaml file
         run: |-
           set -e
-          helm repo index --url https://claudiol.github.io/charts-test/releases/download/main/ --merge index.yaml .
+          helm repo index --url "${ASSETS_BASE_URL}" .
+          # FIXME(bandini): this is for debugging only
           cat index.yaml
-          echo "HELM_DIR=${PWD}" >> $GITHUB_ENV
 
       - name: Checkout code to git-repo folder
         uses: actions/checkout@v3
@@ -105,8 +104,8 @@ jobs:
         run: |-
           set -e
           cd git-repo
-          git config --global user.name "GH Pages index yaml"
-          git config --global user.email "michele+gh@acksyn.org"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           git checkout gh-pages
           # This copies the newly generated index.yaml to the git repo
           cp -fv ../index.yaml .
