@@ -2,7 +2,18 @@ apiVersion: v1
 entries:
   pattern-clustergroup:
   - apiVersion: v2
-    created: "2023-07-13T19:14:56.955259756Z"
+    created: "2023-07-13T19:24:32.244433088Z"
+    description: A Helm chart to create per-clustergroup ArgoCD applications and any
+      required namespaces or subscriptions
+    digest: 905aada4201b03739d54fc2843969e4d5a5db92505410f7ec368d7fbed748d65
+    keywords:
+    - pattern
+    name: pattern-clustergroup
+    urls:
+    - https://github.com/claudiol/charts-test/releases/download/main/pattern-clustergroup-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v2
+    created: "2023-07-13T19:24:32.241594566Z"
     description: A Helm chart to create per-clustergroup ArgoCD applications and any
       required namespaces or subscriptions
     digest: 3a158ed70d9db0ee51c497ad76792c1598f172ba2ff6b5a82638f1494d43bcd7
@@ -12,4 +23,4 @@ entries:
     urls:
     - https://github.com/claudiol/charts-test/releases/download/main/pattern-clustergroup-0.0.1.tgz
     version: 0.0.1
-generated: "2023-07-13T19:14:56.952760019Z"
+generated: "2023-07-13T19:24:32.238689143Z"
