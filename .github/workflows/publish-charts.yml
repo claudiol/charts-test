@@ -21,8 +21,8 @@ env:
   SOURCE_TAG: "${{ inputs.SOURCE_TAG }}"
   SOURCE_REPO: "${{ inputs.SOURCE_REPO }}"
   SOURCE_BRANCH_OVERRIDE: "${{ inputs.SOURCE_BRANCH_OVERRIDE }}"
-  UMBRELLA_REPO: "mbaldessari/charts-test"
-  ASSETS_BASE_URL: "https://github.com/mbaldessari/charts-test/releases/download/main/"
+  UMBRELLA_REPO: "claudiol/charts-test"
+  ASSETS_BASE_URL: "https://github.com/claudiol/charts-test/releases/download/main/"
 
 jobs:
   update-charts:

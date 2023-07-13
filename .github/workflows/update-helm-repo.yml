@@ -23,7 +23,7 @@ jobs:
   update-umbrella-repo:
     # We do not want to run this workflow on the umbrella-repo
     # FIXME(bandini): rename this to the final repo
-    if: ${{ github.repository != 'mbaldessari/charts-test' }}
+    if: ${{ github.repository != 'claudiol/charts-test' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -47,7 +47,7 @@ jobs:
         run: |-
           # FIXME(bandini): rename this to the final repo
           gh workflow run publish-charts.yml \
-            --repo mbaldessari/charts-test \
+            --repo claudiol/charts-test \
             --ref main \
             -f SOURCE_TAG="${{ github.ref_name }}" \
             -f SOURCE_REPO="${{ github.repository }}"
